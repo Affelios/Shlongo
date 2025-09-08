@@ -3,13 +3,13 @@ using Shlongo;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public class MongrationService : IHostedService
+    public class MongrationService(IMongrationContext mongrationContext) : IHostedService
     {
         private readonly MongrationEngine engine = new();
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await engine.MongrateAsync();
+            await engine.MongrateAsync(mongrationContext);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

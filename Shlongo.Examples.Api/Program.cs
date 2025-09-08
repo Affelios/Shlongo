@@ -1,4 +1,6 @@
 
+using System.Reflection;
+
 namespace Shlongo.Examples.Api;
 
 public class Program
@@ -15,7 +17,7 @@ public class Program
         builder.Services.AddSwaggerGen();
 
         // Add shlongo.
-        builder.Services.AddShlongo();
+        builder.Services.AddShlongo(Assembly.GetExecutingAssembly());
 
         var app = builder.Build();
 

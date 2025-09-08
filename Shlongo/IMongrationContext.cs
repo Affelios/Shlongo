@@ -2,5 +2,6 @@
 {
     public interface IMongrationContext
     {
+        public Mongration[] Mongrations { get; }
     }
 }

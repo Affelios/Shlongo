@@ -1,10 +1,10 @@
-﻿
-namespace Shlongo
+﻿namespace Shlongo
 {
     class MongrationEngine
     {
-        public Task MongrateAsync()
+        public Task MongrateAsync(IMongrationContext mongrationContext)
         {
+            var mongrations = mongrationContext.Mongrations;
             return Task.CompletedTask;
         }
     }
