@@ -1,7 +1,6 @@
-﻿
-namespace Shlongo.Examples.Api.Mongrations
+﻿namespace Shlongo.Examples.Api.Mongrations
 {
-    public class _0001_CreateCollections : Mongration
+    public class _0002_CreateIndexes : Mongration
     {
         public override Task UpAsync(IMongrationContext context)
         {
