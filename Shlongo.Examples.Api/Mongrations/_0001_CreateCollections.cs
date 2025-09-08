@@ -1,5 +1,4 @@
-﻿
-namespace Shlongo.Examples.Api.Mongrations
+﻿namespace Shlongo.Examples.Api.Mongrations
 {
     public class _0001_CreateCollections : Mongration
     {
