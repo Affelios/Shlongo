@@ -23,6 +23,9 @@ public class Program
             app.UseSwaggerUI();
         }
 
+        // Add shlongo.
+        app.UseShlongo();
+
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
