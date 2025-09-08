@@ -14,6 +14,9 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        // Add shlongo.
+        builder.Services.AddShlongo();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -23,7 +26,7 @@ public class Program
             app.UseSwaggerUI();
         }
 
-        // Add shlongo.
+        // Use shlongo.
         app.UseShlongo();
 
         app.UseHttpsRedirection();

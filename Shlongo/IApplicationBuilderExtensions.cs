@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-
-namespace Shlongo
+﻿namespace Microsoft.AspNetCore.Builder
 {
     public static class IApplicationBuilderExtensions
     {
