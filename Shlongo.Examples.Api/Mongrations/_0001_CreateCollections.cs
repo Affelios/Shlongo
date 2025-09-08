@@ -2,9 +2,9 @@
 {
     public class _0001_CreateCollections : Mongration
     {
-        public override Task UpAsync(IMongrationContext context)
+        public override async Task UpAsync(IMongrationContext context)
         {
-            return Task.CompletedTask;
+            await context.Database.CreateCollectionAsync("Users");
         }
     }
 }

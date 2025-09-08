@@ -3,7 +3,7 @@ using Shlongo;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public class MongrationService(IMongrationContext mongrationContext) : IHostedService
+    public class MongrationService(MongrationContext mongrationContext) : IHostedService
     {
         private readonly MongrationEngine engine = new();
 

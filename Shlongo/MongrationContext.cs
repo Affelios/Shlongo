@@ -1,9 +1,12 @@
-﻿using System.Reflection;
+﻿using MongoDB.Driver;
+using System.Reflection;
 
 namespace Shlongo
 {
-    class MongrationContext(Assembly mongrationAssembly) : IMongrationContext
+    public class MongrationContext(IMongoClient mongoClient, string databaseName, Assembly mongrationAssembly) : IMongrationContext
     {
+        public IMongoClient MongoClient { get; } = mongoClient;
+        public IMongoDatabase Database { get; } = mongoClient.GetDatabase(databaseName);
         public Mongration[] Mongrations { get; } = [.. mongrationAssembly
             .GetTypes()
             .Where(x => x.BaseType == typeof(Mongration))

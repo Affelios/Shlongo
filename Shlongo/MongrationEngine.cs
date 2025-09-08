@@ -2,10 +2,12 @@
 {
     class MongrationEngine
     {
-        public Task MongrateAsync(IMongrationContext mongrationContext)
+        public async Task MongrateAsync(MongrationContext mongrationContext)
         {
-            var mongrations = mongrationContext.Mongrations;
-            return Task.CompletedTask;
+            foreach (var mongration in mongrationContext.Mongrations)
+            {
+                await mongration.UpAsync(mongrationContext);
+            }
         }
     }
 }

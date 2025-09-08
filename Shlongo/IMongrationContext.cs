@@ -1,7 +1,10 @@
-﻿namespace Shlongo
+﻿using MongoDB.Driver;
+
+namespace Shlongo
 {
     public interface IMongrationContext
     {
-        public Mongration[] Mongrations { get; }
+        public IMongoClient MongoClient { get; }
+        public IMongoDatabase Database { get; }
     }
 }
