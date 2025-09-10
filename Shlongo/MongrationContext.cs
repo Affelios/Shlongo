@@ -11,6 +11,6 @@ namespace Shlongo
             .GetTypes()
             .Where(x => x.BaseType == typeof(Mongration))
             .Select(x => (Mongration)Activator.CreateInstance(x)!)
-            .OrderBy(x => int.Parse(x.GetType().Name.Split('_')[1]))];
+            .OrderBy(x => x.Id)];
     }
 }
