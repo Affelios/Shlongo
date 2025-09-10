@@ -18,11 +18,12 @@ public class Program
         builder.Services.AddSwaggerGen();
 
         // Add shlongo.
-        builder.Services.AddShlongo(
-            new MongoClient(builder.Configuration.GetConnectionString("shlongo-mongo")),
-            "shlongo",
-            Assembly.GetExecutingAssembly());
-
+        builder.Services.AddShlongo(config =>
+        {
+            config.MongrationAssembly = Assembly.GetExecutingAssembly();
+            config.MongoClientSettings = MongoClientSettings.FromConnectionString(builder.Configuration.GetConnectionString("shlongo-mongo"));
+            config.MongoDatabaseName = "shlongo-examples-api";
+        });
 
         var app = builder.Build();
 

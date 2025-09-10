@@ -7,6 +7,7 @@ namespace Shlongo
     {
         public MongoClientSettings MongoClientSettings { get; set; } = new();
         public Assembly MongrationAssembly { get; set; } = Assembly.GetEntryAssembly()!;
-        public string MongrationStateCollectionName { get; set; } = "MongrationState";
+        public string? MongoDatabaseName { get; set; }
+        public string MongrationStateCollectionName { get; set; } = "_mongrations";
     }
 }

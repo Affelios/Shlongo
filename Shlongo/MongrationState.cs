@@ -22,7 +22,7 @@ namespace Shlongo
 
         public DateTime ExecutedAt { get; set; }
 
-        public int BatchId { get; set; }
+        public Guid BatchId { get; set; }
 
         public MongrationStatus Status { get; set; } = MongrationStatus.Running;
 
