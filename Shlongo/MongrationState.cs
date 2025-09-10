@@ -26,8 +26,9 @@ namespace Shlongo
 
         public MongrationStatus Status { get; set; } = MongrationStatus.Running;
 
-        public string Exception { get; set; }
+        public string? Exception { get; set; }
 
-
+        // Indicates this state represents a rollback attempt rather than a forward migration
+        public bool IsRollback { get; set; }
     }
 }

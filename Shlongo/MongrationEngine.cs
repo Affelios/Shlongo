@@ -3,212 +3,277 @@ using Microsoft.Extensions.Logging;
 
 namespace Shlongo
 {
-    public class MongrationEngine(ILogger logger, MongrationContext context)
-    {
-        private IMongoCollection<MongrationState> GetMongrationCollection()
-        {
-            return context.Database.GetCollection<MongrationState>("_mongrations");
-        }
+	public class MongrationEngine(ILogger logger, MongrationContext context)
+	{
+		private IMongoCollection<MongrationState> GetMongrationCollection()
+		{
+			return context.Database.GetCollection<MongrationState>("_mongrations");
+		}
 
-        public async Task MongrateAsync()
-        {
-            var mongrationsCollection = GetMongrationCollection();
-            
-            var executedMongrations = await GetExecutedMongrationsAsync();
-            var executedMongrationNames = executedMongrations.Select(m => m.MongrationName).ToHashSet();
-            
-            var pendingMongrations = context.Mongrations
-                .Where(m => !executedMongrationNames.Contains(m.Name))
-                .ToArray();
+		
+		public async Task MongrateAsync()
+		{
+			if (await HasBlockingStatesAsync())
+			{
+				logger.LogWarning("Mongrations will not run because a previous or current mongration is in Running or Failure state.");
+				return;
+			}
+			
+			var executedMongrations = await GetExecutedMongrationsAsync();
+			var pendingMongrations = context.Mongrations
+				.Where(m => !executedMongrations.Any(em => em.MongrationName == m.Name))
+				.ToArray();
 
-            if (pendingMongrations.Length == 0)
-            {
-                logger.LogInformation("No pending mongrations found.");
-                return;
-            }
+			if (pendingMongrations.Length == 0)
+			{
+				logger.LogInformation("No pending mongrations found.");
+				return;
+			}
 
-            var batchNumber = await GetNextBatchNumberAsync();
-            logger.LogInformation("Executing {MongrationCount} mongrations in batch {BatchNumber}", 
-                pendingMongrations.Length, batchNumber);
+			var batchId = await GetNextBatchIdAsync();
+			logger.LogInformation("Executing {MongrationCount} mongrations in batch {BatchId}", 
+				pendingMongrations.Length, batchId);
 
-            foreach (var mongration in pendingMongrations)
-            {
-                var mongrationName = mongration.GetType().Name;
-                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                
-                try
-                {
-                    logger.LogInformation("Executing mongration: {MongrationName}", mongrationName);
-                    await mongration.UpAsync(context);
-                    stopwatch.Stop();
-                    
-                    await RecordMongrationExecutionAsync(mongrationName, batchNumber, stopwatch.ElapsedMilliseconds);
-                    logger.LogInformation("Mongration {MongrationName} completed successfully in {ExecutionTimeMs}ms", 
-                        mongrationName, stopwatch.ElapsedMilliseconds);
-                }
-                catch (Exception ex)
-                {
-                    stopwatch.Stop();
-                    logger.LogError(ex, "Mongration {MongrationName} failed after {ExecutionTimeMs}ms", 
-                        mongrationName, stopwatch.ElapsedMilliseconds);
-                    throw;
-                }
-            }
+			int successCount = 0;
+			int failureCount = 0;
 
-            logger.LogInformation("Batch {BatchNumber} completed successfully. {MongrationCount} mongrations executed.", 
-                batchNumber, pendingMongrations.Length);
-        }
+			foreach (var mongration in pendingMongrations)
+			{
+				var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+				string runningRecordId = string.Empty;
+				try
+				{
+					runningRecordId = await RecordMongrationStartAsync(mongration, batchId);
 
-        public async Task RollbackLastBatchAsync(MongrationContext context)
-        {
-            var mongrationsCollection = GetMongrationCollection();
+					logger.LogInformation("Executing mongration: {MongrationName}", mongration.Name);
+					await mongration.UpAsync(context);
+					stopwatch.Stop();
+					
+					await UpdateMongrationSuccessAsync(runningRecordId);
+					logger.LogInformation("Mongration {MongrationName} completed successfully in {ExecutionTimeMs}ms", 
+						mongration.Name, stopwatch.ElapsedMilliseconds);
+					successCount++;
+				}
+				catch (Exception ex)
+				{
+					stopwatch.Stop();
+					logger.LogError(ex, "Mongration {MongrationName} failed after {ExecutionTimeMs}ms", 
+						mongration.Name, stopwatch.ElapsedMilliseconds);
+					if (!string.IsNullOrEmpty(runningRecordId))
+					{
+						await UpdateMongrationFailureAsync(runningRecordId, ex);
+					}
+					failureCount++;
+					logger.LogWarning("Halting remaining mongrations due to failure in {MongrationName}.", mongration.Name);
+					break;
+				}
+			}
 
-            var lastBatchMongrations = await GetLastBatchMongrationsAsync();
-            
-            if (lastBatchMongrations.Count == 0)
-            {
-                logger.LogInformation("No mongrations to rollback.");
-                return;
-            }
+			logger.LogInformation("Batch {BatchId} completed. Success: {SuccessCount}, Failures: {FailureCount}", 
+				batchId, successCount, failureCount);
+		}
 
-            var batchNumber = lastBatchMongrations.First().BatchNumber;
-            logger.LogInformation("Rolling back batch {BatchNumber} ({MongrationCount} mongrations)", 
-                batchNumber, lastBatchMongrations.Count);
+		public async Task RollbackLastBatchAsync(MongrationContext context)
+		{
+			if (await HasBlockingStatesAsync())
+			{
+				logger.LogWarning("Rollback will not run because a mongration is in Running or Failure state.");
+				return;
+			}
 
-            // Rollback mongrations in reverse order
-            var mongrationsToRollback = lastBatchMongrations
-                .OrderByDescending(m => m.ExecutedAt)
-                .ToArray();
+			var lastBatchMongrations = await GetLastBatchMongrationsAsync();
+			
+			if (lastBatchMongrations.Count == 0)
+			{
+				logger.LogInformation("No mongrations to rollback.");
+				return;
+			}
 
-            foreach (var mongrationState in mongrationsToRollback)
-            {
-                var mongration = context.Mongrations.FirstOrDefault(m => m.GetType().Name == mongrationState.MongrationName);
-                if (mongration == null)
-                {
-                    logger.LogWarning("Mongration class {MongrationName} not found, marking as rolled back", 
-                        mongrationState.MongrationName);
-                    await RecordMongrationRollbackAsync(mongrationState.MongrationName);
-                    continue;
-                }
+			var batchId = lastBatchMongrations.First().BatchId;
+			logger.LogInformation("Rolling back batch {BatchId} ({MongrationCount} mongrations)", 
+				batchId, lastBatchMongrations.Count);
 
-                try
-                {
-                    logger.LogInformation("Rolling back mongration: {MongrationName}", mongrationState.MongrationName);
-                    await mongration.DownAsync(context);
-                    await RecordMongrationRollbackAsync(mongrationState.MongrationName);
-                    logger.LogInformation("Mongration {MongrationName} rolled back successfully", 
-                        mongrationState.MongrationName);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Failed to rollback mongration {MongrationName}", mongrationState.MongrationName);
-                    throw;
-                }
-            }
+			var mongrationsToRollback = lastBatchMongrations
+				.OrderByDescending(m => m.Id)
+				.ToArray();
 
-            logger.LogInformation("Batch {BatchNumber} rolled back successfully. {MongrationCount} mongrations rolled back.", 
-                batchNumber, mongrationsToRollback.Length);
-        }
+			foreach (var mongrationState in mongrationsToRollback)
+			{
+				var mongration = context.Mongrations.FirstOrDefault(m => m.GetType().Name == mongrationState.MongrationName);
+				if (mongration == null)
+				{
+					logger.LogWarning("Mongration class {MongrationName} not found, recording rollback as success for record cleanup", 
+						mongrationState.MongrationName);
+					await RecordRollbackSuccessAsync(mongrationState);
+					continue;
+				}
 
-        public async Task GetMongrationStatusAsync(MongrationContext context)
-        {
-            var mongrationsCollection = GetMongrationCollection();
+				string rollbackRecordId = string.Empty;
+				try
+				{
+					rollbackRecordId = await RecordRollbackStartAsync(mongrationState);
+					logger.LogInformation("Rolling back mongration: {MongrationName}", mongrationState.MongrationName);
+					await mongration.DownAsync(context);
+					await UpdateRollbackSuccessAsync(rollbackRecordId);
+					logger.LogInformation("Mongration {MongrationName} rolled back successfully", 
+						mongrationState.MongrationName);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Failed to rollback mongration {MongrationName}", mongrationState.MongrationName);
+					if (!string.IsNullOrEmpty(rollbackRecordId))
+					{
+						await UpdateRollbackFailureAsync(rollbackRecordId, ex);
+					}
+					throw;
+				}
+			}
 
-            var executedMongrations = await GetExecutedMongrationsAsync();
-            var allMongrations = context.Mongrations.ToList();
+			logger.LogInformation("Batch {BatchId} rolled back successfully. {MongrationCount} mongrations rolled back.", 
+				batchId, mongrationsToRollback.Length);
+		}
 
-            if (executedMongrations.Any())
-            {
-                logger.LogInformation("Executed mongrations:");
-                foreach (var mongration in executedMongrations)
-                {
-                    var status = mongration.IsRolledBack ? "ROLLED BACK" : "EXECUTED";
-                    var rollbackInfo = mongration.IsRolledBack ? $" (rolled back at {mongration.RolledBackAt:yyyy-MM-dd HH:mm:ss})" : "";
-                    logger.LogInformation("  [{BatchNumber}] {MongrationName} - {Status} at {ExecutedAt:yyyy-MM-dd HH:mm:ss} ({ExecutionTimeMs}ms){RollbackInfo}", 
-                        mongration.BatchNumber, mongration.MongrationName, status, mongration.ExecutedAt, mongration.ExecutionTimeMs, rollbackInfo);
-                }
-            }
+		public async Task GetMongrationStatusAsync(MongrationContext context)
+		{
+			var executedMongrations = await GetExecutedMongrationsAsync();
+			var allMongrations = context.Mongrations.ToList();
 
-            var pendingMongrations = allMongrations
-                .Where(m => !executedMongrations.Any(em => em.MongrationName == m.GetType().Name))
-                .ToList();
+			var pendingMongrations = allMongrations
+				.Where(m => !executedMongrations.Any(em => em.MongrationName == m.GetType().Name))
+				.ToList();
 
-            if (pendingMongrations.Any())
-            {
-                logger.LogInformation("Pending mongrations:");
-                foreach (var mongration in pendingMongrations)
-                {
-                    logger.LogInformation("  {MongrationName}", mongration.GetType().Name);
-                }
-            }
-        }
+			if (pendingMongrations.Any())
+			{
+				logger.LogInformation("Pending mongrations:");
+				foreach (var mongration in pendingMongrations)
+				{
+					logger.LogInformation("  {MongrationName}", mongration.GetType().Name);
+				}
+			}
+		}
 
-        private async Task<int> GetNextBatchNumberAsync()
-        {
-            var mongrationsCollection = GetMongrationCollection();
+		private async Task<int> GetNextBatchIdAsync()
+		{
+			var lastBatch = await GetMongrationCollection()
+				.Find(Builders<MongrationState>.Filter.Empty)
+				.Sort(Builders<MongrationState>.Sort.Descending(x => x.BatchId))
+				.Limit(1)
+				.FirstOrDefaultAsync();
 
-            var lastBatch = await mongrationsCollection
-                .Find(Builders<MongrationState>.Filter.Empty)
-                .Sort(Builders<MongrationState>.Sort.Descending(x => x.BatchNumber))
-                .Limit(1)
-                .FirstOrDefaultAsync();
+			return lastBatch?.BatchId + 1 ?? 1;
+		}
 
-            return lastBatch?.BatchNumber + 1 ?? 1;
-        }
+		private async Task<bool> HasBlockingStatesAsync()
+		{
+			var blockingFilter = Builders<MongrationState>.Filter.In(x => x.Status, new[] { MongrationStatus.Running, MongrationStatus.Failure });
+			return await GetMongrationCollection().Find(blockingFilter).Limit(1).AnyAsync();
+		}
 
-        private async Task RecordMongrationExecutionAsync(string mongrationName, int batchNumber, long executionTimeMs)
-        {
-            var mongrationsCollection = GetMongrationCollection();
+		private async Task<string> RecordMongrationStartAsync(Mongration mongration, int batchId)
+		{
+			var collection = GetMongrationCollection();
+			var filter = Builders<MongrationState>.Filter.Eq(x => x.MongrationId, mongration.Id);
+			var update = Builders<MongrationState>.Update
+				.Set(x => x.MongrationId, mongration.Id)
+				.Set(x => x.MongrationName, mongration.Name)
+				.Set(x => x.ExecutedAt, DateTime.UtcNow)
+				.Set(x => x.BatchId, batchId)
+				.Set(x => x.Status, MongrationStatus.Running)
+				.Set(x => x.IsRollback, false)
+				.Set(x => x.Exception, null);
+			var options = new FindOneAndUpdateOptions<MongrationState> { IsUpsert = true, ReturnDocument = ReturnDocument.After };
+			var result = await collection.FindOneAndUpdateAsync(filter, update, options);
+			return result.Id;
+		}
 
-            var mongrationState = new MongrationState
-            {
-                MongrationName = mongrationName,
-                ExecutedAt = DateTime.UtcNow,
-                BatchNumber = batchNumber,
-            };
+		private async Task UpdateMongrationSuccessAsync(string id)
+		{
+			var filter = Builders<MongrationState>.Filter.Eq(x => x.Id, id);
+			var update = Builders<MongrationState>.Update
+				.Set(x => x.Status, MongrationStatus.Success)
+				.Set(x => x.ExecutedAt, DateTime.UtcNow);
+			await GetMongrationCollection().UpdateOneAsync(filter, update);
+		}
 
-            await mongrationsCollection.InsertOneAsync(mongrationState);
-        }
+		private async Task UpdateMongrationFailureAsync(string id, Exception ex)
+		{
+			var filter = Builders<MongrationState>.Filter.Eq(x => x.Id, id);
+			var update = Builders<MongrationState>.Update
+				.Set(x => x.Status, MongrationStatus.Failure)
+				.Set(x => x.ExecutedAt, DateTime.UtcNow)
+				.Set(x => x.Exception, ex.ToString());
+			await GetMongrationCollection().UpdateOneAsync(filter, update);
+		}
 
-        private async Task RecordMongrationRollbackAsync(string mongrationName)
-        {
-            var mongrationsCollection = GetMongrationCollection();
+		private async Task<string> RecordRollbackStartAsync(MongrationState original)
+		{
+			var collection = GetMongrationCollection();
+			var filter = Builders<MongrationState>.Filter.Eq(x => x.MongrationId, original.MongrationId);
+			var update = Builders<MongrationState>.Update
+				.Set(x => x.MongrationId, original.MongrationId)
+				.Set(x => x.MongrationName, original.MongrationName)
+				.Set(x => x.ExecutedAt, DateTime.UtcNow)
+				.Set(x => x.BatchId, original.BatchId)
+				.Set(x => x.Status, MongrationStatus.Running)
+				.Set(x => x.IsRollback, true)
+				.Set(x => x.Exception, null);
+			var options = new FindOneAndUpdateOptions<MongrationState> { IsUpsert = true, ReturnDocument = ReturnDocument.After };
+			var result = await collection.FindOneAndUpdateAsync(filter, update, options);
+			return result.Id;
+		}
 
-            var filter = Builders<MongrationState>.Filter.Eq(x => x.MongrationName, mongrationName);
-            var update = Builders<MongrationState>.Update
-                .Set(x => x.IsRolledBack, true)
-                .Set(x => x.RolledBackAt, DateTime.UtcNow);
+		private async Task UpdateRollbackSuccessAsync(string id)
+		{
+			var filter = Builders<MongrationState>.Filter.Eq(x => x.Id, id);
+			var update = Builders<MongrationState>.Update
+				.Set(x => x.Status, MongrationStatus.Success)
+				.Set(x => x.ExecutedAt, DateTime.UtcNow);
+			await GetMongrationCollection().UpdateOneAsync(filter, update);
+		}
 
-            await mongrationsCollection.UpdateOneAsync(filter, update);
-        }
+		private async Task UpdateRollbackFailureAsync(string id, Exception ex)
+		{
+			var filter = Builders<MongrationState>.Filter.Eq(x => x.Id, id);
+			var update = Builders<MongrationState>.Update
+				.Set(x => x.Status, MongrationStatus.Failure)
+				.Set(x => x.ExecutedAt, DateTime.UtcNow)
+				.Set(x => x.Exception, ex.ToString());
+			await GetMongrationCollection().UpdateOneAsync(filter, update);
+		}
 
-        private async Task<List<MongrationState>> GetExecutedMongrationsAsync()
-        {
-            var mongrationsCollection = GetMongrationCollection();
+		private async Task RecordRollbackSuccessAsync(MongrationState original)
+		{
+			var id = await RecordRollbackStartAsync(original);
+			await UpdateRollbackSuccessAsync(id);
+		}
 
-            var filter = Builders<MongrationState>.Filter.Eq(x => x.IsRolledBack, false);
-            return await mongrationsCollection
-                .Find(filter)
-                .Sort(Builders<MongrationState>.Sort.Ascending(x => x.BatchNumber).Ascending(x => x.ExecutedAt))
-                .ToListAsync();
-        }
+		private async Task<List<MongrationState>> GetExecutedMongrationsAsync()
+		{
+			var filter = Builders<MongrationState>.Filter.And(
+				Builders<MongrationState>.Filter.Eq(x => x.Status, MongrationStatus.Success),
+				Builders<MongrationState>.Filter.Eq(x => x.IsRollback, false)
+			);
+			return await GetMongrationCollection()
+				.Find(filter)
+				.Sort(Builders<MongrationState>.Sort.Ascending(x => x.BatchId).Ascending(x => x.ExecutedAt))
+				.ToListAsync();
+		}
 
-        private async Task<List<MongrationState>> GetLastBatchMongrationsAsync()
-        {
-            var mongrationsCollection = GetMongrationCollection();
+		private async Task<List<MongrationState>> GetLastBatchMongrationsAsync()
+		{
+			var lastBatchId = await GetNextBatchIdAsync() - 1;
+			if (lastBatchId < 1) return new List<MongrationState>();
 
-            var lastBatchNumber = await GetNextBatchNumberAsync() - 1;
-            if (lastBatchNumber < 1) return new List<MongrationState>();
+			var filter = Builders<MongrationState>.Filter.And(
+				Builders<MongrationState>.Filter.Eq(x => x.BatchId, lastBatchId),
+				Builders<MongrationState>.Filter.Eq(x => x.Status, MongrationStatus.Success),
+				Builders<MongrationState>.Filter.Eq(x => x.IsRollback, false)
+			);
 
-            var filter = Builders<MongrationState>.Filter.And(
-                Builders<MongrationState>.Filter.Eq(x => x.BatchNumber, lastBatchNumber),
-                Builders<MongrationState>.Filter.Eq(x => x.IsRolledBack, false)
-            );
-
-            return await mongrationsCollection
-                .Find(filter)
-                .Sort(Builders<MongrationState>.Sort.Descending(x => x.ExecutedAt))
-                .ToListAsync();
-        }
-    }
+			return await GetMongrationCollection()
+				.Find(filter)
+				.Sort(Builders<MongrationState>.Sort.Descending(x => x.ExecutedAt))
+				.ToListAsync();
+		}
+	}
 }
