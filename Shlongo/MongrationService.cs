@@ -6,11 +6,11 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public class MongrationService(MongrationContext mongrationContext, ILogger<MongrationService> logger) : IHostedService
     {
-        private readonly MongrationEngine engine = new(logger, mongrationContext);
+        private readonly MongrationOrchestrator orchestrator = new(logger, mongrationContext);
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await engine.MongrateAsync();
+            await orchestrator.MongrateAsync();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
