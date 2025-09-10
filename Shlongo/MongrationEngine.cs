@@ -109,6 +109,7 @@ namespace Shlongo
 			{
 				MongrationId = mongration.Id,
 				MongrationName = mongration.Name,
+                MongrationNamespace = context.Configuration.Namespace,
 				ExecutedAt = DateTime.UtcNow,
 				BatchId = batchId
 			};
@@ -119,15 +120,21 @@ namespace Shlongo
         }
 
 		private async Task<List<MongrationState>> GetBlockingStatesAsync()
-		{
-            var blockingFilter = Builders<MongrationState>.Filter.In(x => x.Status, [MongrationStatus.Running, MongrationStatus.Failure]);
+        {
+            var blockingFilter = Builders<MongrationState>.Filter.And(
+                Builders<MongrationState>.Filter.Eq(x => x.MongrationNamespace, context.Configuration.Namespace),
+                Builders<MongrationState>.Filter.In(x => x.Status, [MongrationStatus.Running, MongrationStatus.Failure])
+            );
 			var blockingStates = await GetMongrationCollection().Find(blockingFilter).ToListAsync();
             return blockingStates;
 		}
 
 		private async Task UpdateMongrationSuccessAsync(int mongrationId)
-		{
-			var filter = Builders<MongrationState>.Filter.Eq(x => x.MongrationId, mongrationId);
+        {
+            var filter = Builders<MongrationState>.Filter.And(
+                Builders<MongrationState>.Filter.Eq(x => x.MongrationNamespace, context.Configuration.Namespace),
+                Builders<MongrationState>.Filter.Eq(x => x.MongrationId, mongrationId)
+            );
 			var update = Builders<MongrationState>.Update
 				.Set(x => x.Status, MongrationStatus.Success)
 				.Set(x => x.ExecutedAt, DateTime.UtcNow);
@@ -135,8 +142,11 @@ namespace Shlongo
 		}
 
 		private async Task UpdateMongrationFailureAsync(int mongrationId, Exception ex)
-		{
-			var filter = Builders<MongrationState>.Filter.Eq(x => x.MongrationId, mongrationId);
+        {
+            var filter = Builders<MongrationState>.Filter.And(
+                Builders<MongrationState>.Filter.Eq(x => x.MongrationNamespace, context.Configuration.Namespace),
+                Builders<MongrationState>.Filter.Eq(x => x.MongrationId, mongrationId)
+            );
             var update = Builders<MongrationState>.Update
 				.Set(x => x.Status, MongrationStatus.Failure)
 				.Set(x => x.ExecutedAt, DateTime.UtcNow)
@@ -147,6 +157,7 @@ namespace Shlongo
 		private async Task<MongrationState?> GetLastExecutedMongrationAsync()
 		{
 			var filter = Builders<MongrationState>.Filter.And(
+                Builders<MongrationState>.Filter.Eq(x => x.MongrationNamespace, context.Configuration.Namespace),
 				Builders<MongrationState>.Filter.Eq(x => x.Status, MongrationStatus.Success),
 				Builders<MongrationState>.Filter.Eq(x => x.IsRollback, false)
 			);

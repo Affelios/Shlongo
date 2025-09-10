@@ -16,6 +16,8 @@ namespace Shlongo
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty;
 
+        public string? MongrationNamespace { get; set; }
+
         public int MongrationId { get; set; }
 
         public string MongrationName { get; set; } = string.Empty;
