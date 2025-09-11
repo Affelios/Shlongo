@@ -57,8 +57,6 @@ using System.Threading.Tasks;
 
 public class CreateUsersCollectionMigration : Migration
 {
-    public override int Version => 1;
-
     public override async Task Up(IMongoDatabase database)
     {
         await database.CreateCollectionAsync("users");
@@ -69,16 +67,14 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var mongoClient = new MongoClient("mongodb://localhost:27017");
-        var database = mongoClient.GetDatabase("mydb");
+        var builder = WebApplication.CreateBuilder(args);
 
-        var migrator = new Migrator(
-            database: database,
-            migrationsAssembly: typeof(CreateUsersCollectionMigration).Assembly
-        );
-
-        await migrator.MigrateUpAsync(); // apply pending migrations
-        // await migrator.MigrateDownToAsync(0); // rollback example
+        builder.Services.AddShlongo(config =>
+        {
+            config.MongrationAssembly = Assembly.GetExecutingAssembly();
+            config.MongoClientSettings = MongoClientSettings.FromConnectionString(builder.Configuration.GetConnectionString("mongo"));
+            config.MongoDatabaseName = "mongodb";
+        });
     }
 }
 ```
