@@ -156,11 +156,10 @@ namespace Shlongo
 
 		private async Task<MongrationState?> GetLastExecutedMongrationAsync()
 		{
-			var filter = Builders<MongrationState>.Filter.And(
+            var filter = Builders<MongrationState>.Filter.And(
                 Builders<MongrationState>.Filter.Eq(x => x.MongrationNamespace, context.Configuration.Namespace),
-				Builders<MongrationState>.Filter.Eq(x => x.Status, MongrationStatus.Success),
-				Builders<MongrationState>.Filter.Eq(x => x.IsRollback, false)
-			);
+                Builders<MongrationState>.Filter.Eq(x => x.Status, MongrationStatus.Success)
+            );
 			var lastExecutedMongration = await GetMongrationCollection()
 				.Find(filter)
 				.Sort(Builders<MongrationState>.Sort.Ascending(x => x.MongrationId))
