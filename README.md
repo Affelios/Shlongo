@@ -4,8 +4,7 @@
 ---
 
 ## 🚀 What Is Shlongo
-Shlongo is a lightweight, opinionated framework to help manage **database schema/data migrations** in MongoDB using C#.  
-It helps you version, apply, and rollback changes safely—automating repetitive tasks so your team spends less time worrying about migration chaos.
+Shlongo is a lightweight, opinionated framework to help manage **database schema/data migrations** in MongoDB using C#, which helps you version, apply, and rollback changes safely—automating repetitive tasks so your team spends less time worrying about migration chaos.
 
 ---
 
