@@ -30,7 +30,6 @@ git checkout kb
 ```
 
 - Add the **Shlongo** project / DLL to your solution (`.csproj`) - a NuGet package is coming.  
-- Configure your MongoDB connection (e.g. `appsettings.json`).  
 
 ---
 
