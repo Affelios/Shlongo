@@ -15,21 +15,6 @@ Shlongo is a lightweight, opinionated framework to help manage **database schema
 
 ---
 
-## 🏗️ Project Structure
-```
-/Shlongo                  ← Core migration framework
-/Shlongo.Aspire           ← Extensions or aspiration module
-/Shlongo.Examples.Api     ← Example usage via an API project
-/Shlongo.Tests            ← Unit tests
-/Shlongo.TestsInt         ← Integration tests (MongoDB, real or mocked)
-/Shlongo.sln              ← Solution file
-LICENSE                   ← MIT license
-.gitignore
-README.md
-```
-
----
-
 ## 📋 Getting Started
 
 ### Prerequisites
