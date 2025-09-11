@@ -6,5 +6,6 @@ namespace Shlongo
     {
         public IMongoClient MongoClient { get; }
         public IMongoDatabase Database { get; }
+        public IClientSessionHandle Session { get; }
     }
 }

@@ -1,15 +1,16 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Shlongo;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public class MongrationService(MongrationContext mongrationContext) : IHostedService
+    public class MongrationService(MongrationContext mongrationContext, ILogger<MongrationService> logger) : IHostedService
     {
-        private readonly MongrationEngine engine = new();
+        private readonly MongrationOrchestrator orchestrator = new(logger, mongrationContext);
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await engine.MongrateAsync(mongrationContext);
+            await orchestrator.MongrateAsync();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

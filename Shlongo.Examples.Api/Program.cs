@@ -1,6 +1,5 @@
 
 using MongoDB.Driver;
-using System.Data.Common;
 using System.Reflection;
 
 namespace Shlongo.Examples.Api;
@@ -19,11 +18,12 @@ public class Program
         builder.Services.AddSwaggerGen();
 
         // Add shlongo.
-        builder.Services.AddShlongo(
-            new MongoClient(builder.Configuration.GetConnectionString("shlongo-mongo")),
-            "exampleDb",
-            Assembly.GetExecutingAssembly());
-
+        builder.Services.AddShlongo(config =>
+        {
+            config.MongrationAssembly = Assembly.GetExecutingAssembly();
+            config.MongoClientSettings = MongoClientSettings.FromConnectionString(builder.Configuration.GetConnectionString("shlongo-mongo"));
+            config.MongoDatabaseName = "shlongo-examples-api";
+        });
 
         var app = builder.Build();
 
@@ -33,9 +33,6 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
-        // Use shlongo.
-        app.UseShlongo();
 
         app.UseHttpsRedirection();
 
