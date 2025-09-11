@@ -6,7 +6,7 @@ namespace Shlongo
     {
         public ShlongoConfiguration Configuration { get; } = configuration;
         public IMongoClient MongoClient { get; } = mongoClient;
-        public IMongoDatabase Database { get; } = mongoClient.GetDatabase(configuration.MongoDatabaseName);
+        public IMongoDatabase Database { get; private set; } = mongoClient.GetDatabase(configuration.MongoDatabaseName);
         public Mongration[] Mongrations { get; } = [.. configuration.MongrationAssembly
             .GetTypes()
             .Where(x => x.BaseType == typeof(Mongration))
@@ -19,10 +19,11 @@ namespace Shlongo
             Session = session;
         }
 
-        public MongrationContext ToNamespace(string @namespace)
+        public MongrationContext ToModule(ShlongoModule module)
         {
-            return new(MongoClient, configuration.ToNamespace(@namespace))
+            return new(MongoClient, configuration.ToModule(module))
             {
+                Database = module.Database is null ? Database : MongoClient.GetDatabase(module.Database)
             };
         }
     }

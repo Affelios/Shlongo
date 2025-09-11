@@ -9,19 +9,19 @@ namespace Shlongo
         public Assembly MongrationAssembly { get; set; } = Assembly.GetEntryAssembly()!;
         public string? MongoDatabaseName { get; set; }
         public string MongrationStateCollectionName { get; set; } = "_mongrations";
-        public List<string>? ModuleNamespaces { get; set; }
+        public List<ShlongoModule>? Modules { get; set; }
         public string? Namespace { get; set; }
 
-        public ShlongoConfiguration ToNamespace(string @namespace)
+        public ShlongoConfiguration ToModule(ShlongoModule module)
         {
             return new ShlongoConfiguration
             {
                 MongoClientSettings = MongoClientSettings,
                 MongrationAssembly = MongrationAssembly,
-                MongoDatabaseName = MongoDatabaseName,
+                MongoDatabaseName = module.Database ?? MongoDatabaseName,
                 MongrationStateCollectionName = MongrationStateCollectionName,
-                ModuleNamespaces = null,
-                Namespace = @namespace
+                Modules = null,
+                Namespace = module.Namespace
             };
         }
     }
