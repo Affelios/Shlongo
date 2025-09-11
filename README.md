@@ -69,11 +69,11 @@ public class Program
 
 ## 🔌 Example Migration
 ```csharp
-public class CreateUsersCollectionMigration : Migration
+public class _0001_Initial : Mongration
 {
-    public override async Task Up(IMongoDatabase database)
+    public override async Task UpAsync(IMongrationContext context)
     {
-        await database.CreateCollectionAsync("users");
+        await context.Database.CreateCollectionAsync("users");
     }
 }
 ```
