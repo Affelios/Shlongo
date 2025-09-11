@@ -51,18 +51,6 @@ git checkout kb
 
 ## 🔌 Example Usage
 ```csharp
-using Shlongo;
-using System;
-using System.Threading.Tasks;
-
-public class CreateUsersCollectionMigration : Migration
-{
-    public override async Task Up(IMongoDatabase database)
-    {
-        await database.CreateCollectionAsync("users");
-    }
-}
-
 public class Program
 {
     public static async Task Main(string[] args)
@@ -75,6 +63,17 @@ public class Program
             config.MongoClientSettings = MongoClientSettings.FromConnectionString(builder.Configuration.GetConnectionString("mongo"));
             config.MongoDatabaseName = "mongodb";
         });
+    }
+}
+```
+
+## 🔌 Example Migration
+```csharp
+public class CreateUsersCollectionMigration : Migration
+{
+    public override async Task Up(IMongoDatabase database)
+    {
+        await database.CreateCollectionAsync("users");
     }
 }
 ```
