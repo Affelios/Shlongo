@@ -24,6 +24,7 @@ namespace Shlongo
 
         public DateTime ExecutedAt { get; set; }
 
+        [BsonRepresentation(BsonType.String)]
         public Guid BatchId { get; set; }
 
         public MongrationStatus Status { get; set; } = MongrationStatus.Running;

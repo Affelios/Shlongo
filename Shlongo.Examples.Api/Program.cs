@@ -23,6 +23,7 @@ public class Program
             config.MongrationAssembly = Assembly.GetExecutingAssembly();
             config.MongoClientSettings = MongoClientSettings.FromConnectionString(builder.Configuration.GetConnectionString("shlongo-mongo"));
             config.MongoDatabaseName = "shlongo-examples-api";
+            config.DisableTransactions = true;
         });
 
         var app = builder.Build();
