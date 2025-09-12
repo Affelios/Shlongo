@@ -29,7 +29,10 @@ cd Shlongo
 git checkout kb
 ```
 
-- Add the **Shlongo** project / DLL to your solution (`.csproj`) - a NuGet package is coming.  
+- Install the Shlongo NuGet package
+```
+dotnet add package Shlongo
+```
 
 ---
 

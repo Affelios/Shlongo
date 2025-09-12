@@ -2,8 +2,9 @@
 
 namespace Shlongo
 {
-    public class MongoSession(IMongoClient mongoClient)
+    public class MongoSession(IMongoClient mongoClient, bool disableTransactions)
     {
+        public bool DisableTransactions { get; } = disableTransactions;
         public IClientSessionHandle Session { get; private set; } = null!;
 
         public async Task StartSessionAsync()
@@ -13,26 +14,32 @@ namespace Shlongo
 
         public void StartTransaction()
         {
-#if DEBUG
-#else
+            if (DisableTransactions)
+            {
+                return;
+            }
+
             Session.StartTransaction();
-#endif
         }
 
         public async Task AbortTransactionAsync()
         {
-#if DEBUG
-#else
+            if (DisableTransactions)
+            {
+                return;
+            }
+
             await Session.AbortTransactionAsync();
-#endif
         }
 
         public async Task CommitTransactionAsync()
         {
-#if DEBUG
-#else
+            if (DisableTransactions)
+            {
+                return;
+            }
+
             await Session.CommitTransactionAsync();
-#endif
         }
     }
 }

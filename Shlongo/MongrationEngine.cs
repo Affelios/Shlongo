@@ -42,7 +42,7 @@ namespace Shlongo
                 {
 					activeMongration = mongration;
 
-                    var session = new MongoSession(context.MongoClient);
+                    var session = new MongoSession(context.MongoClient, context.Configuration.DisableTransactions);
 
                     await session.StartSessionAsync();
 
