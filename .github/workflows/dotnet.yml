@@ -28,8 +28,11 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Release
 
-    - name: Pack NuGet package
-      run: dotnet pack Shlongo/Shlongo.csproj --no-build --configuration Release -o ./artifacts
+    - name: Pack NuGet package 2
+      run: dotnet pack Shlongo2/Shlongo2.csproj --no-build --configuration Release -o ./artifacts
+
+    - name: Pack NuGet package 3
+      run: dotnet pack Shlongo3/Shlongo3.csproj --no-build --configuration Release -o ./artifacts
 
     - name: Publish NuGet package
       if: github.ref == 'refs/heads/main'
