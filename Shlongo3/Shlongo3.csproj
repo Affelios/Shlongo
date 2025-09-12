@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- Package Metadata -->
+		<PackageId>Shlongo</PackageId>
+		<Version>3.4.0-pre</Version>
+		<Authors>Affelios</Authors>
+		<Company>Affelios</Company>
+		<Product>Shlongo</Product>
+		<Description>A C# automated migration framework for MongoDB.</Description>
+		<PackageTags>mongodb;migrations;csharp;dotnet</PackageTags>
+		<PackageProjectUrl>https://github.com/Affelios/Shlongo</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Affelios/Shlongo</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReleaseNotes>Prerelease version.</PackageReleaseNotes>
+		<Copyright>© Affelios 2025</Copyright>
+
+		<!-- Build Settings -->
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- Package Options -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Include="..\Shlongo\IMongrationContext.cs" Link="IMongrationContext.cs" />
+	  <Compile Include="..\Shlongo\IServiceCollectionExtensions.cs" Link="IServiceCollectionExtensions.cs" />
+	  <Compile Include="..\Shlongo\MongoSession.cs" Link="MongoSession.cs" />
+	  <Compile Include="..\Shlongo\Mongration.cs" Link="Mongration.cs" />
+	  <Compile Include="..\Shlongo\MongrationContext.cs" Link="MongrationContext.cs" />
+	  <Compile Include="..\Shlongo\MongrationEngine.cs" Link="MongrationEngine.cs" />
+	  <Compile Include="..\Shlongo\MongrationOrchestrator.cs" Link="MongrationOrchestrator.cs" />
+	  <Compile Include="..\Shlongo\MongrationService.cs" Link="MongrationService.cs" />
+	  <Compile Include="..\Shlongo\MongrationState.cs" Link="MongrationState.cs" />
+	  <Compile Include="..\Shlongo\ShlongoConfiguration.cs" Link="ShlongoConfiguration.cs" />
+	  <Compile Include="..\Shlongo\ShlongoModule.cs" Link="ShlongoModule.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="../README.md" Pack="true" PackagePath="\" />
+		<None Include="../LICENSE" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+		<PackageReference Include="MongoDB.Driver" Version="3.4.0" />
+	</ItemGroup>
+
+</Project>
