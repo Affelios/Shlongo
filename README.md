@@ -9,6 +9,7 @@ Shlongo is a lightweight, opinionated framework to help manage **database schema
 ---
 
 ## ✨ Features
+- Supports both version 2.x and 3.x of the [Mongo.Driver](https://www.nuget.org/packages/mongodb.driver)
 - Organised, versioned migrations  
 - Automatic discovery & execution of migrations in order  
 - Integration-friendly: works inside existing .NET / C# projects  
@@ -29,9 +30,13 @@ cd Shlongo
 git checkout kb
 ```
 
-- Install the Shlongo NuGet package
+- Install the Shlongo NuGet package for Mongo 3.x
 ```
-dotnet add package Shlongo
+dotnet add package Shlongo --prerelease --version 3.*
+```
+- Install the Shlongo NuGet package for Mongo 2.x
+```
+dotnet add package Shlongo --prerelease --version 2.*
 ```
 
 ---
