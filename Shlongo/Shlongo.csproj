@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<!-- Package Metadata -->
 		<PackageId>Shlongo</PackageId>
-		<Version>0.0.3-pre</Version>
+		<Version>0.0.4-pre</Version>
 		<Authors>Affelios</Authors>
 		<Company>Affelios</Company>
 		<Product>Shlongo</Product>
