@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shlongo.Aspire", "Shlongo.A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shlongo.Examples.Api", "Shlongo.Examples.Api\Shlongo.Examples.Api.csproj", "{2E066C86-6663-DB30-1983-E5A4E15F040C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shlongo3", "Shlongo3\Shlongo3.csproj", "{5EB579DE-F8FA-4EE7-6C43-20B34148F526}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shlongo2", "Shlongo2\Shlongo2.csproj", "{ABC98B85-8210-7B76-3649-2C73887E8C57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{2E066C86-6663-DB30-1983-E5A4E15F040C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E066C86-6663-DB30-1983-E5A4E15F040C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E066C86-6663-DB30-1983-E5A4E15F040C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EB579DE-F8FA-4EE7-6C43-20B34148F526}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EB579DE-F8FA-4EE7-6C43-20B34148F526}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EB579DE-F8FA-4EE7-6C43-20B34148F526}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EB579DE-F8FA-4EE7-6C43-20B34148F526}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABC98B85-8210-7B76-3649-2C73887E8C57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABC98B85-8210-7B76-3649-2C73887E8C57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABC98B85-8210-7B76-3649-2C73887E8C57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABC98B85-8210-7B76-3649-2C73887E8C57}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
