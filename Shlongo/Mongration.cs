@@ -7,9 +7,5 @@
         public string Name => GetType().Name;
 
         public abstract Task UpAsync(IMongrationContext context);
-        public virtual Task DownAsync(IMongrationContext context)
-        {
-            return Task.CompletedTask;
-        }
     }
 }
