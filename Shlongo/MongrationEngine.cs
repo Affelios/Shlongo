@@ -162,7 +162,7 @@ namespace Shlongo
             );
 			var lastExecutedMongration = await GetMongrationCollection()
 				.Find(filter)
-				.Sort(Builders<MongrationState>.Sort.Ascending(x => x.MongrationId))
+				.Sort(Builders<MongrationState>.Sort.Descending(x => x.MongrationId))
 				.FirstOrDefaultAsync();
 			return lastExecutedMongration;
 		}
