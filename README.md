@@ -32,11 +32,11 @@ git checkout kb
 
 - Install the Shlongo NuGet package for Mongo 3.x
 ```
-dotnet add package Shlongo --prerelease --version 3.*
+dotnet add package Shlongo --version 3.*
 ```
 - Install the Shlongo NuGet package for Mongo 2.x
 ```
-dotnet add package Shlongo --prerelease --version 2.*
+dotnet add package Shlongo --version 2.*
 ```
 
 ---
