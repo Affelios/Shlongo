@@ -12,7 +12,9 @@ namespace Microsoft.Extensions.DependencyInjection
             c.Invoke(configuration);
 
             var mongoClient = new MongoClient(configuration.MongoClientSettings);
-            services.AddSingleton(new MongrationContext(mongoClient, configuration));
+            var model = new MongrationModel(mongoClient, configuration);
+            services.AddSingleton(model);
+            services.AddSingleton<MongrationContext>();
             services.AddHostedService<MongrationService>();
         }
     }

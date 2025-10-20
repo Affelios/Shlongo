@@ -17,6 +17,8 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        builder.Services.AddSingleton<TestDependency>();
+
         // Add shlongo.
         builder.Services.AddShlongo(config =>
         {

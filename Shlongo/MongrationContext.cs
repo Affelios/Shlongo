@@ -1,17 +1,18 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 
 namespace Shlongo
 {
-    public class MongrationContext(IMongoClient mongoClient, ShlongoConfiguration configuration) : IMongrationContext
+    public class MongrationContext(IServiceProvider provider, MongrationModel model) : IMongrationContext
     {
-        public ShlongoConfiguration Configuration { get; } = configuration;
-        public IMongoClient MongoClient { get; } = mongoClient;
-        public IMongoDatabase Database { get; private set; } = mongoClient.GetDatabase(configuration.MongoDatabaseName);
-        public Mongration[] Mongrations { get; } = [.. configuration.MongrationAssembly
+        public ShlongoConfiguration Configuration { get; } = model.Configuration;
+        public IMongoClient MongoClient { get; } = model.MongoClient;
+        public IMongoDatabase Database { get; private set; } = model.MongoClient.GetDatabase(model.Configuration.MongoDatabaseName);
+        public Mongration[] Mongrations { get; } = [.. model.Configuration.MongrationAssembly
             .GetTypes()
             .Where(x => x.BaseType == typeof(Mongration))
-            .Where(x => configuration.Namespace is null || x.Namespace!.StartsWith(configuration.Namespace))
-            .Select(x => (Mongration)Activator.CreateInstance(x)!)
+            .Where(x => model.Configuration.Namespace is null || x.Namespace!.StartsWith(model.Configuration.Namespace))
+            .Select(x => (Mongration)ActivatorUtilities.CreateInstance(provider, x)!)
             .OrderBy(x => x.Id)];
         public IClientSessionHandle Session { get; private set; } = null!;
         public void SetSession(IClientSessionHandle session)
@@ -21,7 +22,7 @@ namespace Shlongo
 
         public MongrationContext ToModule(ShlongoModule module)
         {
-            return new(MongoClient, configuration.ToModule(module))
+            return new(provider, model.ToModule(module))
             {
                 Database = module.Database is null ? Database : MongoClient.GetDatabase(module.Database)
             };
