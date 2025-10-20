@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<!-- Package Metadata -->
 		<PackageId>Shlongo</PackageId>
-		<Version>3.4.3</Version>
+		<Version>3.4.4</Version>
 		<Authors>Affelios</Authors>
 		<Company>Affelios</Company>
 		<Product>Shlongo</Product>
@@ -35,6 +35,7 @@
 	  <Compile Include="..\Shlongo\Mongration.cs" Link="Mongration.cs" />
 	  <Compile Include="..\Shlongo\MongrationContext.cs" Link="MongrationContext.cs" />
 	  <Compile Include="..\Shlongo\MongrationEngine.cs" Link="MongrationEngine.cs" />
+	  <Compile Include="..\Shlongo\MongrationModel.cs" Link="MongrationModel.cs" />
 	  <Compile Include="..\Shlongo\MongrationOrchestrator.cs" Link="MongrationOrchestrator.cs" />
 	  <Compile Include="..\Shlongo\MongrationService.cs" Link="MongrationService.cs" />
 	  <Compile Include="..\Shlongo\MongrationState.cs" Link="MongrationState.cs" />

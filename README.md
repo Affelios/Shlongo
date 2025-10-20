@@ -10,7 +10,8 @@ Shlongo is a lightweight, **unopinionated** framework to help manage **database 
 
 ## ✨ Features
 - Supports both version 2.x and 3.x of the [Mongo.Driver](https://www.nuget.org/packages/mongodb.driver)
-- Organised, versioned migrations  
+- Organised, versioned migrations
+- Native dependency injection support
 - Automatic discovery & execution of migrations in order  
 - Modular monolith friendly (able to process multiple independently numbered script collections in a single project)
 - Integration-friendly: works inside existing .NET / C# projects  
