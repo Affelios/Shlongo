@@ -15,6 +15,7 @@ Shlongo is a lightweight, **unopinionated** framework to help manage **database 
 - Automatic discovery & execution of migrations in order  
 - Modular monolith friendly (able to process multiple independently numbered script collections in a single project)
 - Integration-friendly: works inside existing .NET / C# projects  
+- Migration history (`_mongrations`) records `StartedAt` and `CompletedAt` (plus legacy `ExecutedAt` for compatibility) so long-running or failed migrations keep a clear duration
 
 ---
 

@@ -104,13 +104,15 @@ namespace Shlongo
         private async Task<MongrationState> RecordMongrationStartAsync(Mongration mongration, Guid batchId)
         {
             var collection = GetMongrationCollection();
+			var startedAt = DateTime.UtcNow;
 
 			var state = new MongrationState
 			{
 				MongrationId = mongration.Id,
 				MongrationName = mongration.Name,
                 MongrationNamespace = context.Configuration.Namespace,
-				ExecutedAt = DateTime.UtcNow,
+				StartedAt = startedAt,
+				ExecutedAt = startedAt,
 				BatchId = batchId
 			};
 
@@ -135,9 +137,11 @@ namespace Shlongo
                 Builders<MongrationState>.Filter.Eq(x => x.MongrationNamespace, context.Configuration.Namespace),
                 Builders<MongrationState>.Filter.Eq(x => x.MongrationId, mongrationId)
             );
+			var completedAt = DateTime.UtcNow;
 			var update = Builders<MongrationState>.Update
 				.Set(x => x.Status, MongrationStatus.Success)
-				.Set(x => x.ExecutedAt, DateTime.UtcNow);
+				.Set(x => x.CompletedAt, completedAt)
+				.Set(x => x.ExecutedAt, completedAt);
 			await GetMongrationCollection().UpdateOneAsync(filter, update);
 		}
 
@@ -147,9 +151,11 @@ namespace Shlongo
                 Builders<MongrationState>.Filter.Eq(x => x.MongrationNamespace, context.Configuration.Namespace),
                 Builders<MongrationState>.Filter.Eq(x => x.MongrationId, mongrationId)
             );
+			var completedAt = DateTime.UtcNow;
             var update = Builders<MongrationState>.Update
 				.Set(x => x.Status, MongrationStatus.Failure)
-				.Set(x => x.ExecutedAt, DateTime.UtcNow)
+				.Set(x => x.CompletedAt, completedAt)
+				.Set(x => x.ExecutedAt, completedAt)
 				.Set(x => x.Exception, ex.ToString());
 			await GetMongrationCollection().UpdateOneAsync(filter, update);
 		}
