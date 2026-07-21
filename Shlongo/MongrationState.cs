@@ -22,6 +22,20 @@ namespace Shlongo
 
         public string MongrationName { get; set; } = string.Empty;
 
+        /// <summary>
+        /// When the mongration started (insert / Running).
+        /// </summary>
+        public DateTime StartedAt { get; set; }
+
+        /// <summary>
+        /// When the mongration finished (Success or Failure). Null while Running.
+        /// </summary>
+        public DateTime? CompletedAt { get; set; }
+
+        /// <summary>
+        /// Compatibility timestamp: equals <see cref="StartedAt"/> while Running,
+        /// and equals <see cref="CompletedAt"/> after Success or Failure.
+        /// </summary>
         public DateTime ExecutedAt { get; set; }
 
         [BsonRepresentation(BsonType.String)]
